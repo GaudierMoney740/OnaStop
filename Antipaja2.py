@@ -350,7 +350,7 @@ def eliminarPag():
         try:
             del websBloqueadas[indice[0]]
             cachearWebs()
-            programas.delete(indice)
+            urls.delete(indice)
             messagebox.showinfo("Tarea completada", "Se ha eliminado el programa con éxito")
             bloquearWeb()
         except Exception as e:
