@@ -345,7 +345,7 @@ def eliminarPag():
     if not indice:
         messagebox.showwarning("Aviso", "Selecciona una página")
         return
-    nombre = websBloqueadas.get(indice)
+    nombre = urls.get(indice)
     if nombre:
         try:
             del websBloqueadas[indice[0]]
