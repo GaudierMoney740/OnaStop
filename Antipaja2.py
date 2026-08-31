@@ -113,7 +113,9 @@ def isAdulto(id):
                 for tag in tags:
                     if tag in tagsAdultas:
                         adulto1 = True
-
+        except Exception:
+            adulto1 = None
+        try:
             resp2 = requests.get(url2, timeout=10)
             if resp2.status_code == 200:
                 datos2 = resp2.json()
@@ -122,21 +124,23 @@ def isAdulto(id):
                     for idcont in ids:
                         if idcont in idsAdultas:
                             adulto2 = True
-
-            if adulto1 or adulto2:
-                idAdulto[id] = True
-            else:
-                idAdulto[id] = False
-            with open("CacheTags.txt", "w", encoding="utf-8") as f:
+        except Exception:
+            adulto2 = None
+        if (adulto1 or adulto2) and (adulto1 not in [None, ] or adulto2 not in [None, ]):
+            idAdulto[str(id)] = True
+        elif adulto1 not in [None, ] or adulto2 not in [None, ]:
+            idAdulto[str(id)] = False
+        if adulto1 not in [None, ] or adulto2 not in [None, ]:
+            with open("cacheTags.txt", "w", encoding="utf-8") as f:
                 json.dump(idAdulto, f, ensure_ascii=False, indent=2)
             if adulto1 or adulto2:
                 return True
             else:
                 return False
-        except Exception as e:
-            return False
+        else:
+            return None
     else:
-        return idAdulto.get(id)
+        return idAdulto.get(str(id))
 
 revisados = set()
 def detectarProcesos():
@@ -167,7 +171,9 @@ def detectarProcesos():
                                 id = cache.get(partes[i + 2])
                                 if id:
                                     adulto = isAdulto(id)
-                        if adulto:
+                        if adulto in [None, ]:
+                            continue
+                        elif adulto:
                             proc.terminate()
                             revisados.add(pid)
                             actuar(id, nombre)
@@ -215,29 +221,62 @@ def bloquearWeb():
         print(e)
 
 def desbloquearWeb():
-    try:
-        with open(r"C:\Windows\System32\drivers\etc\hosts", "r+", encoding="utf-8") as f:
-            contenido = f.read()
-            lineas = contenido.split("\n")
-            inicio = None
-            final = None
-            for line in lineas:
-                if line.lower() == "# ANTIPAJA-START".lower():
-                    inicio = lineas.index(line)
-                if line.lower() == "# ANTIPAJA-END".lower():
-                    final = lineas.index(line)
-            if inicio is not None and final is not None and inicio < final:
-                lineas = lineas[:inicio] + lineas[final+1:]
-            else:
-                return
-            f.seek(0)
-            texto = "\n".join(lineas) + "\n"
-            f.write(texto)
-            f.truncate()
-            subprocess.run(["ipconfig", "/flushdns"], capture_output=True)
-            estado2.config(text="Webs: Inactivo")
-    except Exception as e:
-        print(e)
+    win = tk.Toplevel()
+    win.title("Desactivar")
+    win.geometry("300x300")
+    win.resizable(False, False)
+    win.transient(ventana)
+    win.grab_set()
+    win.focus_force()
+    tk.Label(win, text="Introduce el código:").pack()
+    entry = tk.Entry(win)
+    entry.pack()
+    entry.focus()
+    def comprobarClave():
+        global activo
+        clave = entry.get()
+        try:
+            pet = requests.post("http://localhost:5002/validar", json={"codigoUnico" : clave})
+            if pet.status_code == 200:
+                resp = pet.json()
+                if resp.get("estado"):
+                    try:
+                        with open(r"C:\Windows\System32\drivers\etc\hosts", "r+", encoding="utf-8") as f:
+                            contenido = f.read()
+                            lineas = contenido.split("\n")
+                            inicio = None
+                            final = None
+                            for line in lineas:
+                                if line.lower() == "# ANTIPAJA-START".lower():
+                                    inicio = lineas.index(line)
+                                if line.lower() == "# ANTIPAJA-END".lower():
+                                    final = lineas.index(line)
+                            if inicio is not None and final is not None and inicio < final:
+                                lineas = lineas[:inicio] + lineas[final + 1:]
+                            else:
+                                messagebox.showerror("Webs", "Error al desactivar la proteccion")
+                            f.seek(0)
+                            texto = "\n".join(lineas) + "\n"
+                            f.write(texto)
+                            f.truncate()
+                            subprocess.run(["ipconfig", "/flushdns"], capture_output=True)
+                            estado2.config(text="Webs: Inactivo")
+                            win.grab_release()
+                            win.destroy()
+                    except Exception as e:
+                        print(e)
+                else:
+                    messagebox.showwarning("Webs", "Clave erronea")
+        except requests.exceptions.ConnectionError:
+            messagebox.showerror("Webs", "Error al conectarse con el servidor, revisa tu conexión o intenta de nuevo más tarde")
+    def alCerrar():
+        win.grab_release()
+        win.destroy()
+    win.protocol("WM_DELETE_WINDOW", alCerrar)
+    boton = tk.Button(win, text="Iniciar", command=comprobarClave)
+    boton.pack()
+    ventana.wait_window(win)
+
 
 def actuar(id, nombre):
     if id and id not in [0, None,]:
@@ -276,8 +315,40 @@ def activar():
     hilo.start()
 def desactivar():
     global activo
-    estado.config(text="Ejecutables: Inactivo")
-    activo = False
+    win = tk.Toplevel()
+    win.title("Desactivar")
+    win.geometry("300x300")
+    win.resizable(False, False)
+    win.transient(ventana)
+    win.grab_set()
+    win.focus_force()
+    tk.Label(win, text="Introduce el código:").pack()
+    entry = tk.Entry(win)
+    entry.pack()
+    entry.focus()
+    def comprobarClave():
+        global activo
+        clave = entry.get()
+        try:
+            pet = requests.post("http://localhost:5002/validar", json={"codigoUnico" : clave})
+            if pet.status_code == 200:
+                resp = pet.json()
+                if resp.get("estado"):
+                    estado.config(text="Ejecutables: Inactivo")
+                    activo = False
+                    win.grab_release()
+                    win.destroy()
+                else:
+                    messagebox.showwarning("Ejecutables", "Clave erronea")
+        except requests.exceptions.ConnectionError:
+            messagebox.showerror("Ejecutables", "Error al conectarse con el servidor, revisa tu conexión o intenta de nuevo más tarde")
+    def alCerrar():
+        win.grab_release()
+        win.destroy()
+    win.protocol("WM_DELETE_WINDOW", alCerrar)
+    boton = tk.Button(win, text="Iniciar", command=comprobarClave)
+    boton.pack()
+    ventana.wait_window(win)
 
 def addPrograma():
     nombre = cajaTexto.get()
@@ -469,4 +540,3 @@ if __name__ == "__main__":
         acercaDeBoton = tk.Button(ventana, text="Acerca de", command=acercaDe)
         acercaDeBoton.place(relx=0.1, rely=0.9, anchor="center")
         ventana.mainloop()
-
