@@ -18,7 +18,7 @@ def actualizarCodigo():
         global clave
         label.config(text=f"Clave: {clave}")
     while True:
-        pet = requests.post("http://localhost:5002/code", json=json.dumps({"contrasena": contrasena}))
+        pet = requests.post("http://localhost:5002/code", json={"contrasena": contrasena})
         pet.raise_for_status()
         clave = pet.json().get("codigoUnico")
         ventana.after(0, actualizarLabel)
@@ -39,7 +39,7 @@ def pedirContrasena():
     def autenticar():
         global contrasena
         cont = entry.get()
-        pet = requests.post("http://localhost:5002/validarcont", json=json.dumps({"contrasena": cont}))
+        pet = requests.post("http://localhost:5002/validarcont", json={"contrasena": cont})
         pet.raise_for_status()
         if pet.json().get("estado"):
             messagebox.showinfo("Cliente", "La contraseña es correcta")

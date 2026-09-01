@@ -32,8 +32,7 @@ def index():
 @app.route('/code', methods=['POST'])
 def code():
     pet = request.get_json()
-    petJson = json.loads(pet)
-    dicc = {"contrasena" : petJson.get("contrasena")}
+    dicc = {"contrasena" : pet.get("contrasena")}
 
     try:
         with open("contrasena.key", "rb") as f:
@@ -48,8 +47,7 @@ def code():
 @app.route("/validar", methods=["POST"])
 def validar():
     pet = request.get_json()
-    petJson = json.loads(pet)
-    dicc = {"codigoUnico": petJson.get("codigoUnico")}
+    dicc = {"codigoUnico": pet.get("codigoUnico")}
     if dicc.get("codigoUnico") == codigoActual:
         return jsonify({"estado": True})
     else:
@@ -58,8 +56,7 @@ def validar():
 @app.route("/validarcont", methods=["POST"])
 def validarCont():
     pet = request.get_json()
-    petJson = json.loads(pet)
-    dicc = {"contrasena": petJson.get("contrasena")}
+    dicc = {"contrasena": pet.get("contrasena")}
     with open("contrasena.key", "rb") as f:
         if bcrypt.checkpw(dicc.get("contrasena").encode("utf-8"), f.read()):
             return jsonify({"estado": True})
