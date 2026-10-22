@@ -443,10 +443,11 @@ def acercaDe():
     win.geometry("400x300")
     win.resizable(False, False)
 
-    tk.Label(win, text="Version: 2.0").pack(pady=10)
+    tk.Label(win, text="Version: 1.0").pack(pady=10)
     tk.Label(win, text="Motivaciones: Acabar con la lujuria y el pecado").pack(pady=5)
     tk.Label(win, text="Autor: GaudierMoney740").pack(pady=5)
-    tk.Label(win, text="Email para el subnormal que no sepa usar la app: falangista@gmail.com").pack(pady=5)
+    tk.Label(win, text="Contacto: Por paloma mensajera").pack(pady=5)
+    tk.label(win, text="Direccion para paloma: Mi casa, España ").pack(pady=5)
     tk.Button(win, text="Cerrar", command=win.destroy).pack(pady=10)
 
 def blank():
